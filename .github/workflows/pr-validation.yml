@@ -1,0 +1,49 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Run unit tests
+        run: npm test
+        
+      - name: Run integration tests
+        run: npm run test:integration
+        
+      - name: Docker build test
+        run: |
+          docker build -t node-hello:pr-test .
+          docker run --rm -d -p 3000:3000 --name test-container node-hello:pr-test
+          sleep 5
+          # Test the container is responding
+          curl -f http://localhost:3000 || exit 1
+          docker stop test-container
+          
+      - name: Validation Summary
+        run: |
+          echo "🎉 PR validation passed!"
+          echo "✅ Linting: PASSED"
+          echo "✅ Unit Tests: PASSED" 
+          echo "✅ Integration Tests: PASSED"
+          echo "✅ Docker Build: PASSED"
