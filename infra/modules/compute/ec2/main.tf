@@ -64,7 +64,7 @@ resource "aws_security_group" "ec2_sg" {
   })
 }
 
-# IAM role for EC2 to access ECR
+# IAM role for EC2 to access ECR, includes trust policy (declared in same block as iam role unlike permission policy)
 resource "aws_iam_role" "ec2_role" {
   name = "${var.environment}-ec2-ecr-role"
 
@@ -84,7 +84,7 @@ resource "aws_iam_role" "ec2_role" {
   tags = var.tags
 }
 
-# IAM policy for ECR access
+# IAM permission policy for ECR access, attached to role "ec2_role"
 resource "aws_iam_role_policy" "ecr_policy" {
   name = "${var.environment}-ecr-access"
   role = aws_iam_role.ec2_role.id
@@ -106,7 +106,49 @@ resource "aws_iam_role_policy" "ecr_policy" {
   })
 }
 
-# IAM instance profile
+# IAM permission policy for SSM access (required for CI/CD deployments)
+resource "aws_iam_role_policy" "ssm_policy" {
+  name = "${var.environment}-ssm-access"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameters",
+          "ssm:GetParameter",
+          "ssm:GetParametersByPath",
+          "ssm:UpdateInstanceInformation",
+          "ssm:SendCommand",
+          "ssm:ListCommands",
+          "ssm:ListCommandInvocations",
+          "ssm:DescribeInstanceInformation",
+          "ssm:DescribeDocumentParameters",
+          "ssm:DescribeInstanceProperties",
+          "ssm:GetCommandInvocation"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2messages:AcknowledgeMessage",
+          "ec2messages:DeleteMessage",
+          "ec2messages:FailMessage",
+          "ec2messages:GetEndpoint",
+          "ec2messages:GetMessages",
+          "ec2messages:SendReply"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# IAM instance profile, used to encapsulate role for EC2 instance.
+# We attach this instance profile to the EC2 instance, not the role directly.
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.environment}-ec2-profile"
   role = aws_iam_role.ec2_role.name

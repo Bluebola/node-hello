@@ -1,0 +1,79 @@
+name: Dev Environment CI/CD
+
+on:
+  push:
+    branches: [ dev ]
+
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_REPOSITORY: node-hello
+  EC2_INSTANCE_ID: i-06dbdab8e3882e1fd
+
+jobs:
+  test-and-deploy:
+    name: Test, Build & Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies and run tests
+      run: |
+        npm ci
+        npm test
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Build and push to ECR
+      run: |
+        # Login to ECR
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com
+        
+        # Build and tag image
+        docker build -t 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:latest .
+        
+        # Push to ECR
+        docker push 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:latest
+
+    - name: Deploy to EC2
+      run: |
+        # Create deployment script that will run on EC2
+        aws ssm send-command \
+          --instance-ids $EC2_INSTANCE_ID \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=[
+            "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com",
+            "docker stop node-hello-app || true",
+            "docker rm node-hello-app || true", 
+            "docker pull 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest",
+            "docker run -d --name node-hello-app -p 3000:3000 --restart unless-stopped 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest"
+          ]' \
+          --region $AWS_REGION
+
+    - name: Wait and verify deployment
+      run: |
+        echo "Waiting 30 seconds for deployment..."
+        sleep 30
+        
+        # Get EC2 public IP
+        PUBLIC_IP=$(aws ec2 describe-instances \
+          --instance-ids $EC2_INSTANCE_ID \
+          --region $AWS_REGION \
+          --query 'Reservations[0].Instances[0].PublicIpAddress' \
+          --output text)
+        
+        echo "Testing application at http://$PUBLIC_IP:3000"
+        curl -f http://$PUBLIC_IP:3000 || exit 1
+        echo "✅ Deployment successful!"
