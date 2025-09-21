@@ -59,7 +59,7 @@ jobs:
         terraform init
         terraform plan
         terraform apply -auto-approve
-        echo "✅ Infrastructure updated successfully"
+        echo " Infrastructure updated successfully"
 
     - name: Build and push to ECR
       run: |
@@ -78,10 +78,10 @@ jobs:
           --document-name "AWS-RunShellScript" \
           --parameters 'commands=[
             "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com",
-            "docker stop node-hello-app || true",
-            "docker rm node-hello-app || true", 
+            "docker stop node-hello-dev || true",
+            "docker rm node-hello-dev || true", 
             "docker pull 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest",
-            "docker run -d --name node-hello-app -p 3000:3000 --restart unless-stopped 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest"
+            "docker run -d --name node-hello-dev -p 3000:3000 --restart unless-stopped 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest"
           ]' \
           --region $AWS_REGION
 
