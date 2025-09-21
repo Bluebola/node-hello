@@ -1,4 +1,4 @@
-# Simple CI/CD Pipeline Setup
+# Complete CI/CD Pipeline Setup
 
 ## Required GitHub Secrets
 
@@ -9,44 +9,61 @@ Your AWS Access Key ID with permissions for:
 - ECR (push/pull images)
 - EC2 (describe instances) 
 - SSM (send commands to EC2)
+- Terraform (infrastructure management)
 
 ### AWS_SECRET_ACCESS_KEY
 Your AWS Secret Access Key
 
-## Security Note
+## Pipeline Features
 
-For production use, create a dedicated IAM user with minimal permissions instead of using admin credentials. See `github-actions-policy.json` for the exact permissions needed.
+The pipeline is triggered when you push to the `dev` branch and includes:
 
-## How It Works
+### 1. **Testing**
+- Runs `npm test` to verify code quality
+- Ensures all unit and integration tests pass
 
-The pipeline is triggered when you push to the `dev` branch:
+### 2. **Infrastructure Management** 
+- Detects changes to `infra/` folder
+- Automatically runs `terraform init/plan/apply` if infrastructure changed
+- Updates AWS resources as needed
 
-1. **Test**: Runs `npm test` to verify code quality
-2. **Build**: Creates Docker image and pushes to ECR with `latest` tag
-3. **Deploy**: Uses AWS SSM to run commands on EC2:
-   - Stop old container
-   - Pull latest image from ECR
-   - Start new container
-4. **Verify**: Tests that application responds on port 3000
+### 3. **Application Deployment**
+- Builds Docker image and pushes to ECR with `latest` tag (mutable)
+- Uses AWS SSM to update EC2 container:
+  - Stop old container
+  - Pull latest image from ECR  
+  - Start new container
+- Verifies application responds on port 3000
 
-## Deployment Method
+## Key Improvements
 
-**AWS Systems Manager (SSM)** is used to remotely execute commands on the EC2 instance. This requires:
+- ✅ **Mutable ECR tags**: Can overwrite `latest` tag for simpler workflow
+- ✅ **Infrastructure automation**: Terraform changes deploy automatically  
+- ✅ **No SSH required**: Uses AWS SSM for secure remote deployment
+- ✅ **End-to-end automation**: Code → Infrastructure → Application → Verification
 
-- EC2 instance has SSM Agent (pre-installed on Amazon Linux 2)
-- EC2 instance has IAM role with `AmazonSSMManagedInstanceCore` policy
-- Your AWS credentials have SSM permissions
+## Deployment Methods
+
+### Application Changes Only
+```
+Git Push → Tests → Docker Build → ECR Push → SSM Deploy → Verify
+```
+
+### Infrastructure + Application Changes  
+```
+Git Push → Tests → Terraform Apply → Docker Build → ECR Push → SSM Deploy → Verify
+```
 
 ## Testing the Pipeline
 
-1. Make code changes
-2. Push to dev branch: `git push origin dev`
-3. Check GitHub Actions tab for pipeline status
-4. Verify at your EC2 URL: http://[EC2-PUBLIC-IP]:3000
+1. **Application changes**: Edit Node.js code, push to dev branch
+2. **Infrastructure changes**: Edit Terraform files in `infra/`, push to dev branch  
+3. **Monitor**: Check GitHub Actions tab for pipeline status
+4. **Verify**: Visit http://[EC2-PUBLIC-IP]:3000 to see changes
 
-## Why This Approach?
+## Requirements
 
-- **No SSH required**: Uses AWS SSM instead of SSH keys
-- **Minimal complexity**: Single job with essential steps only
-- **ECR integration**: Automatically pulls latest image to EC2
-- **Built-in verification**: Pipeline fails if deployment doesn't work
+- EC2 instance with SSM Agent (pre-installed on Amazon Linux 2)
+- EC2 IAM role with SSM and ECR permissions
+- ECR repository set to mutable tags
+- Terraform backend (S3 + DynamoDB) configured

@@ -36,31 +36,43 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Check for infrastructure changes
+      id: infra-check
+      run: |
+        if git diff --name-only HEAD~1 | grep -q "infra/"; then
+          echo "Infrastructure changes detected"
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "No infrastructure changes"
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Deploy infrastructure changes
+      if: steps.infra-check.outputs.changed == 'true'
+      run: |
+        cd infra/dev
+        terraform init
+        terraform plan
+        terraform apply -auto-approve
+        echo "✅ Infrastructure updated successfully"
+
     - name: Build and push to ECR
       run: |
         # Login to ECR
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com
         
-        # Create unique tag with timestamp and commit hash
-        IMAGE_TAG="dev-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
-        ECR_URI="820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY"
-        
-        # Build and tag image with unique tag
-        docker build -t $ECR_URI:$IMAGE_TAG .
-        
-        # Also tag as dev-latest for deployment
-        docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:dev-latest
-        
-        # Push both tags
-        docker push $ECR_URI:$IMAGE_TAG
-        docker push $ECR_URI:dev-latest
-        
-        # Export for next step
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        # Build and push with latest tag (now that tags are mutable)
+        docker build -t 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:latest .
+        docker push 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/$ECR_REPOSITORY:latest
 
     - name: Deploy to EC2
       run: |
-        # Create deployment script that will run on EC2
+        # Deploy latest image to EC2 via SSM
         aws ssm send-command \
           --instance-ids $EC2_INSTANCE_ID \
           --document-name "AWS-RunShellScript" \
@@ -68,8 +80,8 @@ jobs:
             "aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com",
             "docker stop node-hello-app || true",
             "docker rm node-hello-app || true", 
-            "docker pull 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:dev-latest",
-            "docker run -d --name node-hello-app -p 3000:3000 --restart unless-stopped 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:dev-latest"
+            "docker pull 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest",
+            "docker run -d --name node-hello-app -p 3000:3000 --restart unless-stopped 820672722254.dkr.ecr.ap-southeast-1.amazonaws.com/node-hello:latest"
           ]' \
           --region $AWS_REGION
 
