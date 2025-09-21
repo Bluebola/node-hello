@@ -69,8 +69,9 @@ override.tf.json
 *_override.tf.json
 
 # Include override files you do wish to add to version control using negation
-# The following would include a file called production.tfvars
-# !production.tfvars
+# Allow production tfvars (no secrets in prod.tfvars)
+!prod.tfvars
+!*/prod.tfvars
 
 # Ignore CLI configuration files
 .terraformrc
