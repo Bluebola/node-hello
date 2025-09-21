@@ -13,6 +13,10 @@ Your AWS Access Key ID with permissions for:
 ### AWS_SECRET_ACCESS_KEY
 Your AWS Secret Access Key
 
+## Security Note
+
+For production use, create a dedicated IAM user with minimal permissions instead of using admin credentials. See `github-actions-policy.json` for the exact permissions needed.
+
 ## How It Works
 
 The pipeline is triggered when you push to the `dev` branch:
