@@ -29,7 +29,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **Container Registry**: Amazon ECR
 - **Deployment**: Direct application deployment via AWS Systems Manager
 
-![Development Environment Architecture]
+[Development Environment Architecture]
 <img width="1169" height="827" alt="image" src="https://github.com/user-attachments/assets/694001a2-18fa-46da-985a-1ed63bcb531a" />
 
 ### Production Environment  
@@ -41,7 +41,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **VPC Endpoints**: ECR, Docker, S3, CloudWatch (cost optimization)
 - **High Availability**: ECS Service maintains desired task count with ALB health checks
 
-![Production Environment Architecture]
+[Production Environment Architecture]
 <img width="1169" height="858" alt="image" src="https://github.com/user-attachments/assets/bdcefe82-0fdd-4b38-8222-af341ab53b44" />
 
 ## 🔄 CI/CD Pipelines
