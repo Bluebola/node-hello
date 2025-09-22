@@ -25,38 +25,23 @@ This project demonstrates enterprise-grade DevOps practices with:
 ## 🏗️ Application Architecture
 
 ### Development Environment
-- **Platform**: Amazon EC2 instance
-- **Deployment**: Direct application deployment via SSH
-- **Load Balancing**: Single instance (development use)
+- **Compute**: Amazon EC2 instance
+- **Networking**: AWS Default VPC with public subnet
 - **Container Registry**: Amazon ECR
+- **Deployment**: Direct application deployment via AWS Systems Manager
 
-### Production Environment
-- **Platform**: Amazon ECS Fargate
-- **Orchestration**: ECS Service with Application Load Balancer
-- **Scaling**: Fixed single container (cost-optimized for demonstration)
-- **High Availability**: ALB health checks with automatic task replacement
+![Development Environment Architecture](./docs/images/dev-architecture.png)
+
+### Production Environment  
+- **Compute**: Amazon ECS Fargate (single task, cost-optimized)
+- **Networking**: Custom VPC with public/private subnets across multiple AZs
+- **Load Balancing**: Application Load Balancer in public subnets
+- **Container Placement**: ECS tasks in private subnets (no direct internet access)
 - **Container Registry**: Amazon ECR
+- **VPC Endpoints**: ECR, Docker, S3, CloudWatch (cost optimization)
+- **High Availability**: ECS Service maintains desired task count with ALB health checks
 
-*[Architecture diagrams to be added]*
-
-## 🌩️ Infrastructure Overview
-
-### AWS Services Used
-- **Compute**: EC2 (dev), ECS Fargate (prod)
-- **Networking**: VPC, Subnets, Internet Gateway, NAT Gateway
-- **Load Balancing**: Application Load Balancer
-- **Container Registry**: Amazon ECR
-- **Monitoring**: CloudWatch
-- **Storage**: S3 (Terraform state)
-
-### Network Architecture
-- **Custom VPC** with public and private subnets across multiple AZs
-- **ALB Placement**: Application Load Balancer deployed in **public subnets** (internet-facing)
-- **ECS Tasks**: Fargate containers deployed in **private subnets** (no direct internet access)
-- **VPC Endpoints** for ECR, S3, and CloudWatch (cost optimization)
-- **Security Groups** with principle of least privilege
-- **Internet Gateway** for public subnet access
-- **NAT Gateway** for private subnet outbound access
+![Production Environment Architecture](./docs/images/prod-architecture.png)
 
 ## 🔄 CI/CD Pipelines
 
@@ -77,7 +62,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 
 **Workflow**:
 1. **Code Quality**: Run linting checks (ESLint)
-2. **Testing**: Execute comprehensive test suite
+2. **Testing**: Execute unit and integration tests
 3. **Build**: Create production Docker image
 4. **Push**: Upload to Amazon ECR with `:latest` tag
 5. **Deploy**: Trigger ECS service update with zero-downtime deployment
@@ -159,7 +144,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - VPC Endpoints (ECR, S3, CloudWatch)
 - Security Groups
 
-**Purpose**: Provides secure, scalable network foundation for all services.
+**Purpose**: Provides secure, scalable network foundation for prod environment.
 
 #### Compute Module (`infra/modules/compute/`)
 
@@ -231,7 +216,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - Node.js 18+ for local development
 
 ### AWS Secrets Configuration
-Add these secrets to your GitHub repository:
+Add these secrets to your GitHub repo:
 ```
 AWS_ACCESS_KEY_ID: Your AWS access key
 AWS_SECRET_ACCESS_KEY: Your AWS secret key
@@ -274,7 +259,7 @@ terraform apply
 ### CloudWatch Integration
 - **Container Logs**: Centralized logging for ECS tasks
 - **Application Metrics**: Custom metrics from the application
-- **Infrastructure Metrics**: EC2 and ECS resource utilization
+- **Infrastructure Metrics**: ECS resource utilization
 - **Alarms**: Automated alerting for critical issues
 
 ### Health Checks
@@ -312,13 +297,13 @@ terraform apply
 
 ### High Availability & Reliability
 - Application Load Balancer for traffic distribution across AZs
-- ECS health checks with automatic task replacement
+- ECS service with automatic task replacement
 - CloudWatch monitoring for operational visibility
 
 ### Cost Optimization
 - VPC endpoints to reduce NAT Gateway costs
 - Single task deployment for demonstration purposes
-- Right-sized instances for development
+- Right-sized instances for development (free tier t2.micro for ec2 instances)
 - VPC endpoints instead of NAT Gateway for ECR access
 
 
