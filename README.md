@@ -14,7 +14,6 @@ This project demonstrates enterprise-grade DevOps practices with:
 ## 📋 Table of Contents
 
 - [Application Architecture](#application-architecture)
-- [Infrastructure Overview](#infrastructure-overview)
 - [CI/CD Pipelines](#cicd-pipelines)
 - [Testing Strategy](#testing-strategy)
 - [Terraform Infrastructure](#terraform-infrastructure)
