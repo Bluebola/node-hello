@@ -31,6 +31,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **Deployment**: Direct application deployment via AWS Systems Manager
 
 ![Development Environment Architecture](./docs/images/dev-architecture.png)
+<img width="1169" height="858" alt="image" src="https://github.com/user-attachments/assets/bdcefe82-0fdd-4b38-8222-af341ab53b44" />
 
 ### Production Environment  
 - **Compute**: Amazon ECS Fargate (single task, cost-optimized)
