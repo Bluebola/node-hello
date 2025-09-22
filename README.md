@@ -20,6 +20,9 @@ This project demonstrates enterprise-grade DevOps practices with:
 - [Deployment Process](#deployment-process)
 - [Getting Started](#getting-started)
 - [Monitoring & Observability](#monitoring--observability)
+- [Security Considerations](#monitoring--observability)
+- [Performance Considerations](#monitoring--observability)
+
 
 ## 🏗️ Application Architecture
 
