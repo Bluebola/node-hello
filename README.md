@@ -30,7 +30,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **Container Registry**: Amazon ECR
 - **Deployment**: Direct application deployment via AWS Systems Manager
 
-![Development Environment Architecture](./docs/images/dev-architecture.png)
+![Development Environment Architecture](./docs/images/GovtechTHADev.drawio%20(2).png)
 
 ### Production Environment  
 - **Compute**: Amazon ECS Fargate (single task, cost-optimized)
@@ -41,7 +41,7 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **VPC Endpoints**: ECR, Docker, S3, CloudWatch (cost optimization)
 - **High Availability**: ECS Service maintains desired task count with ALB health checks
 
-![Production Environment Architecture](./docs/images/prod-architecture.png)
+![Production Environment Architecture](./docs/images/GovtechTHAProd.drawio.png)
 
 ## 🔄 CI/CD Pipelines
 
