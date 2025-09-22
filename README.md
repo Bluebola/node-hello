@@ -14,13 +14,15 @@ This project demonstrates enterprise-grade DevOps practices with:
 ## 📋 Table of Contents
 
 - [Application Architecture](#application-architecture)
-- [Infrastructure Overview](#infrastructure-overview)
 - [CI/CD Pipelines](#cicd-pipelines)
 - [Testing Strategy](#testing-strategy)
 - [Terraform Infrastructure](#terraform-infrastructure)
 - [Deployment Process](#deployment-process)
 - [Getting Started](#getting-started)
 - [Monitoring & Observability](#monitoring--observability)
+- [Security Considerations](#monitoring--observability)
+- [Performance Considerations](#monitoring--observability)
+
 
 ## 🏗️ Application Architecture
 
@@ -30,7 +32,8 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **Container Registry**: Amazon ECR
 - **Deployment**: Direct application deployment via AWS Systems Manager
 
-![Development Environment Architecture](./docs/images/GovtechTHADev.drawio%20(2).png)
+[Development Environment Architecture]
+<img width="1169" height="827" alt="image" src="https://github.com/user-attachments/assets/694001a2-18fa-46da-985a-1ed63bcb531a" />
 
 ### Production Environment  
 - **Compute**: Amazon ECS Fargate (single task, cost-optimized)
@@ -41,7 +44,8 @@ This project demonstrates enterprise-grade DevOps practices with:
 - **VPC Endpoints**: ECR, Docker, S3, CloudWatch (cost optimization)
 - **High Availability**: ECS Service maintains desired task count with ALB health checks
 
-![Production Environment Architecture](./docs/images/GovtechTHAProd.drawio.png)
+[Production Environment Architecture]
+<img width="1169" height="858" alt="image" src="https://github.com/user-attachments/assets/bdcefe82-0fdd-4b38-8222-af341ab53b44" />
 
 ## 🔄 CI/CD Pipelines
 
